@@ -1,0 +1,28 @@
+{
+	"extends": "tslint:recommended",
+	"rules": {
+		"max-line-length": {
+			"options": [100]
+		},
+		"no-any": {
+			"severity": "warning"
+		},
+		"no-empty-interface": true,
+		"no-magic-numbers": false,
+		"curly": true,
+		"prefer-switch": true,
+		"prefer-while": true,
+		"no-consecutive-blank-lines": true,
+		"no-irregular-whitespace": true,
+		"object-literal-sort-keys": false,
+		"semicolon": true,
+		"interface-name": false,
+		"max-classes-per-file": false,
+		"variable-name": {
+			"options" : [
+				"allow-snake-case",
+				"allow-leading-underscore"
+			]
+		}
+	}
+}

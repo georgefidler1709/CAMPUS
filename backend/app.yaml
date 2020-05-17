@@ -1,0 +1,47 @@
+# Google App Engine app description
+
+# Go version 1.12
+runtime: nodejs10
+
+# This responds directly to external requests
+service: default
+
+# Standard request handlers
+handlers:
+  # Index request
+  - url: /
+    secure: always
+    static_files: static/index.html
+    upload: static/index.html
+
+  # API requests
+  - url: /api
+    script: auto
+
+  # Schema request
+  - url: /schema.gql
+    static_files: schema.gql
+    upload: schema.gql
+
+  # Static file requests
+  - url: /static
+    secure: always
+    static_dir: static
+
+  # API requests
+  - url: /expo
+    secure: always
+    static_files: static/expo.html
+    upload: static/expo.html
+
+
+# Error response pages
+error_handlers:
+  # Default error handler
+  - file: static/errors/default.html
+
+  - error_code: over_quota
+    file: static/errors/over_quota.html
+
+  - error_code: timeout
+    file: static/errors/timeout.html

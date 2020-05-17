@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs"
+  },
+  "include": [
+    "*.ts",
+	"test/*.ts"
+  ]
+}

@@ -1,0 +1,543 @@
+## COMP3900 Good Vibes Only Group Project
+## Curtis Millar (z3424700), Eleni Dimitriadis (z5191013)
+## George Fidler (z5160384), Misha Cajic (z5117366)
+
+## GQL Schema for Campus app database
+
+## MAIN QUERIES ##############################################
+type Query {
+
+  ## USERS ##
+
+  # Get account details for the current user
+  user: User
+
+  # Get every user
+  all_users: [User]!
+
+  # Search for a user by name
+  search_users(query: String!): [SearchUser]!
+
+  ## GROUPS ##
+
+  # Get a single group via its unique ID
+  group(gid: ID!): Group
+
+  # All publically listed groups
+  public_groups: [Group]!
+
+  # Search groups
+  search_public_groups(query: String!): [Group]!
+
+  ## LOCATIONS ##
+
+  # Get all of the locations in the database
+  locations: [Location]!
+
+  # Get a single specific location from the database
+  location(id: ID!): Location!
+
+  # Search location by key terms
+  search_locations(query: String!): [Location]!
+
+  ## EVENTS ##
+
+  # Get details for a given event
+  event(eid: ID!): Event
+
+  # Get every event
+  all_events: [Event]!
+
+  # Get all publically listed events
+  all_public_events(filter: EventFilter!): [Event]!
+
+  # Get all publically listed events recommended for given user
+  all_public_events_with_prefs(
+    filter: EventFilter!,
+    show_first: [Category]!,
+    show_never: [Category]!
+  ): [Event]!
+
+  # Get all events owned by current user
+  all_owned_events: [Event]!
+
+  # Get all events owned by given user
+  all_owned_events_with_id(uid: ID!): [Event]!
+
+  # Search events by name
+  search_events(query: String!): [Event]!
+
+  ## MISC ##
+
+  # Get the UUID for the current test
+  test_id: String
+
+  # Simple ping request
+  ping(id: Int!): Int!
+}
+
+## TYPE DEFINITIONS ###########################################
+
+## USERS ##
+
+# Data-types used in requests
+type User {
+  # Unique user identifier
+  uid: ID!
+
+  # Human-readable name for the user
+  name: String!
+
+  # A user's events
+  calendar: [Event]!
+
+  # Categories of event the user wants to see first
+  show_first: [Category]!
+  
+  # Categories of event the user is not interested in
+  show_never: [Category]!
+
+  # All of the groups a user is a member of
+  groups: [Group]!
+  
+  # All of the groups a user is subscribed to
+  subscriptions: [Group]!
+}
+
+# User data returned by a search
+type SearchUser {
+  # Unique user identifier
+  uid: ID!
+  # Human-readable name for the user
+  name: String!
+}
+
+## GROUPS ##
+
+# A groups with a dedicated calendar
+type Group {
+  # Unique identifier of the group
+  gid: ID!
+  # Name of the group
+  name: String!
+  # Description of the group
+  description: String
+  # Whether or not the group is publically searchable
+  is_public: Boolean
+  # Members of the group
+  members: [User]!
+  # subscribers of the group
+  subscribers: [User]!
+  # Events belonging to the group
+  calendar: [Event]!
+}
+
+## LOCATIONS ##
+
+# A Location in the database
+type Location {
+  # Unique identifier of the location within its parent
+  id: ID!
+
+  # ID of parent location
+  parent: ID
+
+  # Human readable location name
+  name: String!
+
+  # Geographic location
+  latlong: LatLong!
+
+  # Alternative human-readable names
+  aliases: [String]!
+
+  # Child locations
+  children: [Location]!
+
+  # Maximum number of people that can use the location
+  capacity: Int
+
+  # Whether the location can be booked in this system
+  bookable: Boolean
+
+  # Entrances between this location and another location
+  entrances: [Entrance]!
+
+  # Amenities available in the location
+  amenities: [Amenity]!
+}
+
+# An entrance to a location
+type Entrance {
+  # Unique identifier within the location
+  id: ID!
+
+  # Geographic location of the entrance
+  latlong: LatLong!
+
+  # Kind of entrance
+  kind: EntranceKind!
+
+  # Which kind of connection is made by the entrance.
+  connection: EntranceConnection!
+
+  # ID of joined location
+  # For child connections this is the ID of one of the children,
+  # For sibling connections this is the ID of a child of the parent,
+  # For parent connections this is null
+  connected: ID
+}
+
+# Kinds of entrances
+enum EntranceKind {
+  DOOR
+  STAIRWAY
+  ELEVATOR
+}
+
+# Ways in which an entrance can connect to another location
+enum EntranceConnection {
+  # The connection joins a location to its parent
+  JOINS_PARENT
+  # The connection joins one of its children
+  JOINS_CHILD
+  # The connection joins a child of the parent
+  JOINS_SIBLING
+}
+
+# An amenity which could be in a location
+type Amenity {
+  # Unique identifier within the location
+  id: ID!
+
+  # Description text of amenity
+  description: String!
+
+  # Geographic location of the entrance
+  latlong: LatLong!
+
+  # Kinds of amenity at the given position
+  # Each amenity may offer multiple services and thus have multiple
+  # kinds of service
+  services: [Service]!
+}
+
+# Services found at amenities
+enum Service {
+  BATHROOM
+  MALE_BATHROOM
+  FEMALE_BATHROOM
+  UNISEX_BATHROOM
+  DISABLED_BATHROOM
+  SHOWER
+  KITCHEN
+  COLD_WATER
+  HOT_WATER
+  MICROWAVE
+  WATER_POST
+  BUBBLER
+  BOTTLE_REFILL
+}
+
+# A geographic location by latitutde and longitude
+type LatLong {
+  latitude: Float!
+  longitude: Float!
+}
+
+## EVENTS ##
+
+type Event {
+  # Unique event identifier
+  eid: ID!
+
+  # Human-readable name for the event
+  name: String!
+
+  start_time: String!
+
+  end_time: String!
+
+  location: Location
+
+  description: String
+
+  # Whether this event is a public event
+  public_event: Boolean!
+
+  # Event capacity
+  capacity: Int
+
+  # Remaining capacity (capacity - attending RSCPs)
+  remaining_capacity: Int
+
+  # Guests invited to event
+  rsvps: [RSVP]!
+
+  # The rsvp of the current authenticated user
+  user_rsvp: RSVP
+
+  # Type of event
+  categories: [Category]!
+
+  # Whether the current user can edit this event
+  can_edit: Boolean!
+}
+
+type RSVP {
+  event: Event!
+  guest: User!
+  response: InviteResponse!
+}
+
+enum InviteResponse {
+  INVITED
+  ATTENDING
+  NOT_ATTENDING
+}
+
+enum OwnedBy {
+  USER
+  GROUP
+}
+
+# Kinds of events
+enum Category {
+  ADVICE
+  ARTS
+  BIOLOGY
+  BUSINESS
+  CHEMISTRY
+  COMPUTER_SCIENCE
+  CONCERT
+  ECONOMICS
+  FINE_ART
+  FREE_FOOD
+  GIVEAWAY
+  HISTORY
+  LANGUAGES
+  LAW
+  LECTURE
+  LITERATURE
+  MATHS
+  MEDICINE
+  MEETING
+  MUSIC
+  PERFORMANCE
+  PHILOSOPHY
+  PHYSICS
+  POLITICS
+  PSYCHOLOGY
+  REHEARSAL
+  SCIENCE
+  SEMINAR
+  SOCIAL
+  TALK
+  THEATRE
+  TUTORIAL
+}
+
+## MUTATION REQUESTS ###########################################
+
+type Mutation {
+
+  ## USERS ##
+
+  # Create new user details for the current user
+  create_user(user: UpdateUser!): User
+
+  # Create a new user with a specific id
+  create_user_with_id(uid: ID!, user: UpdateUser!): User
+
+  # Update the details of the current user
+  update_user(updated: UpdateUser!): User
+
+  # Update the details of a user with a specific id
+  update_user_with_id(uid: ID!, updated: UpdateUser): User
+
+  # Delete the current user
+  delete_user: Boolean!
+
+  # Delete a user with a specific id
+  delete_user_with_id(uid: ID!): Boolean!
+
+  ## GROUPS ##
+
+  # Create a new group with the current user as the only member
+  create_group(group: UpdateGroup!): Group
+
+  # Create a group with a specific user as the first member
+  create_group_for_user(user: ID!, group: UpdateGroup!): Group
+
+  # Update the basic details of a group
+  update_group(gid: ID!, group: UpdateGroup!): Group
+
+  # Add a member to a group
+  add_group_member(gid: ID!, user: ID!): Group
+
+  # Remove a user from a group
+  remove_group_member(gid: ID!, user: ID!): Group
+
+  # Subscribe to a group to view events
+  subscribe_to_group(gid: ID!): Group
+
+  # Unsubscribe from a group to stop receiving event invites
+  unsubscribe_from_group(gid: ID!): Group
+
+  # Subscribe a particular user to a group
+  subscribe_user_to_group(gid: ID!, user: ID!): Group
+
+  # Unsubscribe a particular user from a group
+  unsubscribe_user_from_group(gid: ID!, user: ID!): Group
+
+  # Delete a group entirely
+  delete_group(gid: ID!): Boolean
+
+  ## LOCATIONS ##
+
+  # Create a new child location in the given parent
+  create_location(
+    parent: ID,
+    location: UpdateLocation!,
+  ): Location
+
+  # Update a location at a particular path
+  update_location(
+    id: ID!,
+    location: UpdateLocation!,
+  ): Location
+
+  # Delete a location with a particular path
+  delete_location(id: ID!): Boolean!
+
+  # Create an entrance in a location
+  create_entrance(
+    location: ID!,
+    entrance: UpdateEntrance!,
+  ): Entrance!
+
+  # Update an entrance
+  update_entrance(
+    location: ID!,
+    id: ID!,
+    entrance: UpdateEntrance!,
+  ): Entrance!
+
+  # Delete a location with a particular path
+  delete_entrance(
+    location: ID!,
+    id: ID!,
+  ): Boolean!
+
+  # Create an amenity in a location
+  create_amenity(
+    location: ID!,
+    amenity: UpdateAmenity!,
+  ): Amenity!
+
+  # Update an entrance
+  update_amenity(
+    location: ID!,
+    id: ID!,
+    amenity: UpdateAmenity!,
+  ): Amenity
+
+  # Delete a location with a particular path
+  delete_amenity(
+    location: ID!,
+    id: ID!,
+  ): Boolean!
+
+  ## EVENTS ##
+
+  # Create new event
+  create_event(event_info: UpdateEvent!): Event
+
+  # Create new event
+  create_group_event(owner: ID!, event_info: UpdateEvent!): Event
+
+  # Create new event with given user
+  create_event_with_owner(
+    owner: ID!,
+    owned_by: OwnedBy!,
+    event_info: UpdateEvent!,
+  ): Event
+
+  # Update the details of the given event
+  update_event(eid: ID!, event_info: UpdateEvent!): Event
+
+  # Update the details of the given event with owner
+  update_event_without_owner(eid: ID!, event_info: UpdateEvent!): Event
+
+  # Delete the given event
+  delete_event(eid: ID!): Boolean!
+
+  # Delete the given event owned by given owner
+  delete_event_without_owner(eid: ID!): Boolean!
+
+  # Invite a user to an event
+  invite(event: ID!, guest: ID!): RSVP
+
+  # Respond to an event invite
+  respond(event: ID!, response: InviteResponse!): RSVP
+
+  # Respond to an event invite with a user id
+  respond_with_id(event: ID!, uid: ID!, response: InviteResponse!): RSVP
+}
+
+input UpdateUser {
+  # New name to give user
+  name: String
+  show_first: [Category]
+  show_never: [Category]
+}
+
+input UpdateGroup {
+  name: String
+  description: String
+  is_public: Boolean
+}
+
+input UpdateLocation {
+  name: String
+  latlong: UpdateLatLong
+  aliases: [String]
+  capacity: Int
+  bookable: Boolean
+}
+
+input UpdateEntrance {
+  latlong: UpdateLatLong
+  kind: EntranceKind
+  connection: EntranceConnection
+  connected: ID
+}
+
+# An amenity which could be in a location
+input UpdateAmenity {
+  description: String
+  latlong: UpdateLatLong
+  services: [Service]
+}
+
+input UpdateLatLong {
+  latitude: Float!
+  longitude: Float!
+}
+
+input UpdateEvent {
+  name: String
+  start_time: String
+  end_time: String
+  location_id: ID
+  description: String
+  public_event: Boolean
+  capacity: Int
+  categories: [Category]
+}
+
+input EventFilter {
+  happening_now: Boolean!
+  location: ID
+  categories: [Category]!
+}
