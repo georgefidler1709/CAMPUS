@@ -1,5 +1,13 @@
 The CAMPUS App
 ==============
+<div style="display:flex; flex-direction:row">
+ <img src="/media/campus4.png" width="275" height="500">
+ <img src="/media/campus6.png" width="275" height="500">
+ <img src="/media/campus2.png" width="275" height="500">
+ <img src="/media/campus1.png" width="275" height="500">
+ <img src="/media/campus7.png" width="275" height="500">
+ <img src="/media/campus3.png" width="275" height="500">
+</div>
 
 This directory contains the source code for the *CAMPUS* app.
 
