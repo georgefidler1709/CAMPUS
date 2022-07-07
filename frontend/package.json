@@ -24,7 +24,7 @@
     "firebase-admin": "^8.10.0",
     "geolib": "^3.2.1",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "moment-range": "^4.0.2",
     "native-base": "^2.13.12",
     "react": "~16.9.0",
