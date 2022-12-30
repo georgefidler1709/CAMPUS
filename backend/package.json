@@ -22,7 +22,7 @@
     "@google-cloud/nodejs-repo-tools": "^3.3.0",
     "@types/express": "^4.16.0",
     "@types/mocha": "^7.0.2",
-    "mocha": "^7.1.0",
+    "mocha": "^10.2.0",
     "node-ts": "^5.0.4",
     "requires": "^1.0.2",
     "should": "^13.2.3",
